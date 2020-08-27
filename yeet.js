@@ -32,13 +32,11 @@ client.on('message', message => {
 
     switch (cmd) {
         case 'help':
-	        console.log("Sending command list");
-            message.channel.send(config.commandList);
+	        sendHelpList(message, config);
             break;
         case 'r':
             if(args[0] == ""){ message.reply("Bitte gib ein Subreddit an."); }
-            let result = sendRedditPost(message, args[0], usedRedditLinks);
-            if(result != ""){ usedRedditLinks.push(result); }
+            sendRedditPost(message, args[0], usedRedditLinks);
             break;
         case 'getRedditList':
             sendRedditList(message, usedRedditLinks);
@@ -95,6 +93,17 @@ client.on('message', message => {
 
 
 client.login(auth.token);
+
+
+function sendHelpList(message, config){
+    let helpPage = "";
+    config.commandList.forEach(function(value, index){
+        helpPage += "**" + config.commandIdentifier + value + "\n";
+    })
+
+    console.log("Sending command list");
+    message.channel.send(helpPage);
+}
 
 
 function watch_twitter(message, account){
@@ -155,9 +164,10 @@ function watch_twitter(message, account){
 
 
 
-function sendRedditPost(message, subreddit, usedRedditLinks){
+async function sendRedditPost(message, subreddit){
     console.log("Getting post from: " + subreddit);
     message.react("🔄");
+
     curl.get("https://www.reddit.com/r/" + subreddit + "/new/.json?limit=50", null, (err, resp, data) => {
         if (resp && resp.statusCode == 200) {
             let rawdata = data;
@@ -182,12 +192,11 @@ function sendRedditPost(message, subreddit, usedRedditLinks){
                 console.log("Sending: { " + randomResult + " }");
                 message.reactions.removeAll();
                 message.channel.send(randomResult);
-                return randomResult;
+                usedRedditLinks.push(randomResult);
             }else{
                 console.log("Sending: { Konnte Subreddit nicht finden. }");
                 message.reactions.removeAll();
                 message.channel.send("Konnte Subreddit nicht finden.");
-                return "";
             }
 
 
@@ -196,7 +205,6 @@ function sendRedditPost(message, subreddit, usedRedditLinks){
             console.log("Sending: { Fehler: Entweder ist ein Netzwerk-Fehler aufgetreten oder es gibt das Subreddit nicht }");
             message.reactions.removeAll();
             message.reply("Fehler: Entweder ist ein Netzwerk-Fehler aufgetreten oder es gibt das Subreddit nicht");
-            return "";
         }
     });
 }
@@ -204,23 +212,29 @@ function sendRedditPost(message, subreddit, usedRedditLinks){
 
 
 function sendRedditList(message, usedRedditLinks){
-    console.log(usedRedditLinks);
-    let msgString = "Schon benutzte Reddit-Links: \n";
-    usedRedditLinks.forEach(function(el){
-        if((msgString.length + el.length) > 2000){
-            console.log("################################################");
-            console.log("Reddit Liste ist zu lang, muss aufgeteilt werden");
-            console.log("################################################");
-            console.log("sendLength: " + msgString.length + "\n");
-            message.channel.send(msgString);
-            msgString = "'" + el + "'\n";
-        }else{
-            msgString += "'" + el + "'\n";
-        }            
-    });
-    console.log("Sending: { " + msgString + " }");
-    console.log("sendLength: " + msgString.length + "\n");
-    message.channel.send(msgString);
+    if(usedRedditLinks.length > 0){
+        console.log(usedRedditLinks);
+        let msgString = "Schon benutzte Reddit-Links: \n";
+        
+        usedRedditLinks.forEach(function(el){
+            if((msgString.length + el.length) > 2000){
+                console.log("################################################");
+                console.log("Reddit Liste ist zu lang, muss aufgeteilt werden");
+                console.log("################################################");
+                console.log("sendLength: " + msgString.length + "\n");
+                message.channel.send(msgString);
+                msgString = "'" + el + "'\n";
+            }else{
+                msgString += "'" + el + "'\n";
+            }            
+        });
+        console.log("Sending: { " + msgString + " }");
+        console.log("sendLength: " + msgString.length + "\n");
+        message.channel.send(msgString);
+    }else{
+        console.log("Sending: { Es wurden keine Reddit-Links gefunden }");
+        message.channel.send("Es wurden keine Reddit-Links gefunden");
+    }
 }
 
 

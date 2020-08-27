@@ -1,24 +1,23 @@
 {
-    "commandIdentifier": "$",
-    "commandList":  "**$yeet**: Returns Yote! \n" +
-                    "**$sidi [BEGRIFF]**: Returns Sag ich da immer sentence. \n" +
-                    "**$wohnung**: Returns the bots current location Kappa. \n" +
-                    "**$r [subreddit name from url]**: Returns a new post from given subreddit. \n" +
-                    "**$exc**: Returns a question. \n" +
-                    "**$thx**: Returns a thank you message. \n" +
-                    "**$geekjoke**: Returns a joke. \n" +
-                    "**cat**: Returns an image of a cat. \n" +
-                    "**dog**: Returns an image of a dog. \n" +
-                    "**$numberfact**: Returns a number fact. \n" +
-                    "**$chucknorris**: Returns a Chuck Norris joke. \n" +
-                    "**$catfacts**: Returns a cat fact. \n" +
-                    "**$google [BEGRIFF/SATZ]**: Returns Google Search link for given word/sentence \n" +
-                    "**$avatar [@user]**: Replies with the avatar of the user executing the command \n" +
-                    "**$rp**: Returns a ✅ or ❌. \n" +
-                    "**$tweet [twitter tag of user]**: Returns a random tweet of given account. \n" +
-                    "**$wt [twitter tag of user]**: Gets a twitter users newest tweet every minute \n" +
-                    "**$wm**: start memes watcher \n" +
-                    "**$swm**: stops memes watcher",
+    "commandIdentifier": "!",
+    "commandList":  [ "yeet**: Returns Yote!",
+                      "sidi [BEGRIFF]**: Returns Sag ich da immer sentence.",
+                      "wohnung**: Returns the bots current location Kappa.",
+                      "r [subreddit name from url]**: Returns a new post from given subreddit.",
+                      "geekjoke**: Returns a joke.",
+                      "cat**: Returns an image of a cat.",
+                      "dog**: Returns an image of a dog.",
+                      "numberfact**: Returns a number fact.",
+                      "chucknorris**: Returns a Chuck Norris joke.",
+                      "catfacts**: Returns a cat fact.",
+                      "google [BEGRIFF/SATZ]**: Returns Google Search link for given word/sentence",
+                      "avatar [@user]**: Replies with the avatar of the user executing the command",
+                      "rp**: Returns a ✅ or ❌.",
+                      "tweet [twitter tag of user]**: Returns a random tweet of given account.",
+                      "wt [twitter tag of user]**: Gets a twitter users newest tweet every minute",
+                      "wm**: start memes watcher",
+                      "swm**: stops memes watcher"
+                    ],
     "exceptionArray": ["a", "e", "i", "o", "u", "y", "A", "E", "I", "O", "U", "ä", "ö", "ü", "Ä", "Ö", "Ü", "Y"],
     "cat_api_url": "https://api.thecatapi.com/v1/images/search?size=full&mime_type=jpg,png,gife5166907-bf66-46b9-bf6d-946504ce5323",
     "dog_api_url": "https://api.thedogapi.com/v1/images/search?size=full&mime_type=jpg,png,gife5166907-bf66-46b9-bf6d-946504ce5323",
@@ -30,6 +29,5 @@
     "discord_avatar_url": "https://cdn.discordapp.com/avatars/",
     "modList": ["293049891184443392"],
     "twitterList": ["cursed_bot", "DankRedditMeme", "WholesomeMeme", "theMemesBot", "ItMeIRL2", "Duck_page", "NoContextHumans", "myunclesmemes", 
-                    "itanimeirl", "it_meirl", "AAAAAGGHHHH", "BestMemeBot", "DankMemesBot420", "StrangestMp4"],
-    "": ""
+                    "itanimeirl", "it_meirl", "AAAAAGGHHHH", "BestMemeBot", "DankMemesBot420", "StrangestMp4"]
 }
