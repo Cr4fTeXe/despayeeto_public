@@ -87,6 +87,9 @@ client.on('message', message => {
         case 'swm':
             if( config.modList.includes(message.author.id) ){ stopMemesWatcher(message, intervalList) }
             break;
+        case 'vote':
+            startVote(message, config);
+            break;
 
    }
 });
@@ -105,7 +108,6 @@ function sendHelpList(message, config){
     message.channel.send(helpPage);
 }
 
-
 function watch_twitter(message, account){
     var params = {screen_name: account, count: 1, exclude_replies: true, include_rts: false};
     let thisItemLastPost = "";
@@ -113,56 +115,46 @@ function watch_twitter(message, account){
     console.log( "Executing " + account + " Watcher." );
   
     intervalList.push(setInterval(function () {
-      console.log(intervalCount + " wm: " + account);
-      twitterClient.get('statuses/user_timeline', params, function (error, tweets, response) {
-          if (!error) {
-              let latestPost = "";
+        console.log(intervalCount + " wm: " + account);
+        twitterClient.get('statuses/user_timeline', params, function (error, tweets, response) {
+            if (!error) {
+                let latestPost = "";
   
-              if( tweets[0].entities.media != undefined ){
-                  if( tweets[0].entities.media[0].expanded_url.includes("video/1") ){
-                      latestPost += "\n" + account + ": ";
-              if(tweets[0].text){
-                  latestPost += "\n" + tweets[0].text + "\n";
-              }
-              latestPost += tweets[0].entities.media[0].expanded_url;
-                  }else{
-                      if ( tweets[0].entities.media[0].media_url_https ) {
-                          latestPost += "\n" + account + ": ";
-                  if(tweets[0].text){
-                      latestPost += "\n" + tweets[0].text + "\n";
-                      }
-              latestPost += tweets[0].entities.media[0].media_url_https;
-                      }else{
-                          if (tweets.length > 0 && tweets[0].text) {
-                              latestPost += "\n" + account + ": \n" + tweets[0].text;
-                          }
-                      }
-                  }
-      
+                if( tweets[0].entities.media != undefined ){
+                    if( tweets[0].entities.media[0].expanded_url.includes("video/1") ){
+                        latestPost += "\n" + account + ": ";
+                        latestPost += tweets[0].entities.media[0].expanded_url;
+                    }else{
+                        if ( tweets[0].entities.media[0].media_url_https ) {
+                            latestPost += "\n" + account + ": ";
+                            latestPost += tweets[0].entities.media[0].media_url_https;
+                        }else{
+                            if (tweets.length > 0 && tweets[0].text) {
+                                latestPost += "\n" + account + ": \n" + tweets[0].text;
+                            }
+                        }
+                    } 
+                }else{
+                    if((tweets.length > 0 && tweets[0].text) || (tweets.length > 0 && tweets[0].entities.urls)){
+                        latestPost += "\n" + account + ": \n" + tweets[0].text;
+                        if(tweets[0].entities.urls.expanded_url){
+                            latestPost += " \n" + tweets[0].entities.urls.expanded_url;
+                        }
+                    }else{
+                        console.log("Keine Tweets oder kein Text vorhanden");
+                    }
+                }
   
-              }else{
-                  if((tweets.length > 0 && tweets[0].text) || (tweets.length > 0 && tweets[0].entities.urls)){
-                      latestPost += "\n" + account + ": \n" + tweets[0].text;
-                      if(tweets[0].entities.urls.expanded_url){
-                          latestPost += " \n" + tweets[0].entities.urls.expanded_url;
-                      }
-                  }else{
-                      console.log("Keine Tweets oder kein Text vorhanden");
-                  }
-              }
-  
-              if (latestPost != thisItemLastPost) {
-                  message.channel.send( latestPost );
-                  console.log("New Post by: " + account);
-                  thisItemLastPost = latestPost;
-              }
-          }
-      });
+                if (latestPost != thisItemLastPost) {
+                    message.channel.send( latestPost );
+                    console.log("New Post by: " + account);
+                    thisItemLastPost = latestPost;
+                }
+            }
+        });
         intervalCount++;
     }, 60000));
 }
-
-
 
 async function sendRedditPost(message, subreddit){
     console.log("Getting post from: " + subreddit);
@@ -209,8 +201,6 @@ async function sendRedditPost(message, subreddit){
     });
 }
 
-
-
 function sendRedditList(message, usedRedditLinks){
     if(usedRedditLinks.length > 0){
         console.log(usedRedditLinks);
@@ -237,8 +227,6 @@ function sendRedditList(message, usedRedditLinks){
     }
 }
 
-
-
 function sendSidi(message, attr, config){
     let secondPart = attr.toLowerCase();
     let exceptionArray = config.exceptionArray;
@@ -255,8 +243,6 @@ function sendSidi(message, attr, config){
     message.channel.send(schm);
 }
 
-
-
 function sendCatPost(message, config){
     curl.get(config.cat_api_url, null, (err, resp, data) => {
         if (resp && resp.statusCode == 200) {
@@ -267,8 +253,6 @@ function sendCatPost(message, config){
         }
     });
 }
-
-
 
 function sendDogPost(message, config){
     curl.get(config.dog_api_url, null, (err, resp, data) => {
@@ -281,8 +265,6 @@ function sendDogPost(message, config){
     });
 }
 
-
-
 function sendNumberFact(message, config){
     curl.get(config.numbersapi_url, null, (err, resp, body) => {
         if (resp.statusCode == 200) {
@@ -293,8 +275,6 @@ function sendNumberFact(message, config){
         }
     });
 }
-
-
 
 function sendChuckNorrisPost(message, config){
     curl.get(config.chucknorris_url, null, (err, resp, body) => {
@@ -307,8 +287,6 @@ function sendChuckNorrisPost(message, config){
     });
 }
 
-
-
 function sendGeekJokePost(message, config){
     curl.get(config.geekjokes_url, null, (err, resp, body) => {
         if (resp.statusCode == 200) {
@@ -319,8 +297,6 @@ function sendGeekJokePost(message, config){
         }
     });
 }
-
-
 
 function sendCatFact(message, config){
     curl.get(config.catfacts_url, null, (err, resp, body) => {
@@ -333,8 +309,6 @@ function sendCatFact(message, config){
         }
     });
 }
-
-
 
 function sendGoogleSearch(message, config, attr){
     let g_url = config.google_search_url;
@@ -350,8 +324,6 @@ function sendGoogleSearch(message, config, attr){
     console.log("Sending: { " + g_url + " }");
     message.channel.send( g_url );
 }
-
-
 
 function sendUserAvatar(message, config){
     var testCounter = 0;
@@ -371,16 +343,12 @@ function sendUserAvatar(message, config){
     message.reply(avatarURL);
 }
 
-
-
 function sendRpChoice(message){
     let options = ["✅","❌"];
     let result = options[Math.floor(Math.random() * options.length)];
     console.log("Sending: { " + result + " }");
     message.reply(result);
 }
-
-
 
 function sendSoloTweet(message, args, twitterClient){
     var params = {screen_name: args[0], count: 1, exclude_replies: true, include_rts: false};
@@ -425,8 +393,6 @@ function sendSoloTweet(message, args, twitterClient){
     });
 }
 
-
-
 function watchTwitterList(message, config){
     config.twitterList.forEach(function(el){
         watch_twitter(message, el);
@@ -434,10 +400,169 @@ function watchTwitterList(message, config){
     message.channel.send(`Started Memes Watcher!`);
 }
 
-
-
 function stopMemesWatcher(message, intervalList){
     intervalList.map(clearInterval);
     console.log("Stopped Meme Watcher!");
     message.channel.send(`Stopped Memes Watcher`);
+}
+
+function startVote(message, config){
+    let voteOptions = message.content.substring(6).split('|');
+    let voteCountdown = voteOptions[1];
+    let countdownString = "";
+    if(voteCountdown == ""){
+        message.reply("Fehler: Es wurde kein Zeitraum für die Abstimmung angegeben. Alternativ kann auch -1 für eine unbegrenzte Abstimmung angegeben werden");
+        return;
+    }
+    let timeString = " ";
+
+    if(voteCountdown.includes("m")){ 
+        voteCountdown = voteCountdown.replace("m", "");
+        voteCountdown = parseInt(voteCountdown);
+        countdownString = voteCountdown;
+        if(voteCountdown > 1){
+            timeString += "Minuten";
+        }else{
+            timeString = "Minute";
+        }
+        voteCountdown = voteCountdown * 60;
+    }else{
+        if(voteCountdown.includes("s")){ 
+            voteCountdown = voteCountdown.replace("s", "");
+            voteCountdown = parseInt(voteCountdown);
+            countdownString = voteCountdown;
+            if(voteCountdown > 1){
+                timeString += "Sekunden";
+            }else{
+                timeString += "Sekunde";
+            }
+        }else{
+            if(parseInt(voteCountdown) > 0 ){
+                message.reply("Fehler: Es wurde kein Zeit-Format angegeben. Benutze entweder s für Sekunden oder m für Minuten.");
+                return;
+            }
+        }
+    }
+
+    if(voteCountdown < 0){
+        countdownString = "";
+        timeString = "∞";
+    }
+
+    let initialVoteMessage = "**" + voteOptions[0] + "**\n";
+    if(voteCountdown > 0){ 
+        initialVoteMessage += "Abstimmung endet nach: **" + countdownString + timeString + "**\n\n";
+    }
+    
+    for(let i = 2; i < voteOptions.length; i++){
+        initialVoteMessage += "Option " + config.voteEmoteList[(-2 + i)] + ": **" + voteOptions[i] + "**\n";
+    }
+
+    if(initialVoteMessage == ""){
+        message.reply("Fehler: Es wurden keine Optionen angegeben.");
+        return;
+    }
+
+    message.channel.send(initialVoteMessage).then(function(message){
+        for(let i = 2; i < voteOptions.length; i++){
+            message.react(config.voteEmoteList[(-2 + i)]);
+        }
+
+        if(voteCountdown > 0){
+                
+            let voteResultList = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0 }
+
+            message.awaitReactions(function(reaction){
+                let reactionUser = Array.from(reaction.users.cache)[reaction.users.cache.size-1][1];
+                let reactionUserID = reactionUser.id;
+                let reactionUserName = reactionUser.username;
+                if(reactionUserID != config.botID){
+                    console.log("Vote wurde empfangen von: " + reactionUserName);
+                    switch(reaction.emoji.name){
+                        case config.voteEmoteList[0]:
+                            voteResultList[0] = 1 + voteResultList[0];
+                            break;
+                        case config.voteEmoteList[1]:
+                            voteResultList[1] = 1 + voteResultList[1];
+                            break;
+                        case config.voteEmoteList[2]:
+                            voteResultList[2] = 1 + voteResultList[2];
+                            break;
+                        case config.voteEmoteList[3]:
+                            voteResultList[3] = 1 + voteResultList[3];
+                            break;
+                        case config.voteEmoteList[4]:
+                            voteResultList[4] = 1 + voteResultList[4];
+                            break;
+                        case config.voteEmoteList[5]:
+                            voteResultList[5] = 1 + voteResultList[5];
+                            break;
+                        case config.voteEmoteList[6]:
+                            voteResultList[6] = 1 + voteResultList[6];
+                            break;
+                        case config.voteEmoteList[7]:
+                            voteResultList[7] = 1 + voteResultList[7];
+                            break;
+                        case config.voteEmoteList[8]:
+                            voteResultList[8] = 1 + voteResultList[8];
+                            break;
+                        case config.voteEmoteList[9]:
+                            voteResultList[9] = 1 + voteResultList[9];
+                            break;
+                    }
+                }
+            });
+
+            function endVote(message, voteResultList, voteOptions){
+                console.log("Beende die Abstimmung");
+                console.log(voteOptions);
+                let winnerValue = voteResultList[0];
+                let winnerList = [];
+
+                for(el in voteResultList){
+                    if(voteResultList[el] > winnerValue){
+                        winnerValue = voteResultList[el];
+                        winnerList = [];
+                        if(voteResultList[el] > 0){
+                            winnerList.push(el);
+                        }
+                    }else{
+                        if(voteResultList[el] == winnerValue){
+                            if( voteResultList[el] > 0 ){
+                                winnerList.push(el);
+                            }
+                        }
+                    }
+                }
+
+                let optionString = "Folgende Option";
+                let middleString = " ha";
+                let winnerMessage = " gewonnen: ";
+                if(winnerList.length > 1){
+                    winnerList.forEach(function(el){
+                        winnerMessage += voteOptions[parseInt(el) + 2] + " + ";
+                    })
+                    winnerMessage = winnerMessage.substring(0, winnerMessage.length - 3);
+                    optionString += "en";
+                    middleString += "ben";
+                }else{
+                    if( winnerValue > 0 ){
+                        winnerMessage += voteOptions[parseInt(winnerList[0]) + 2];
+                        middleString += "t";    
+                    }
+                }
+                
+                if( winnerValue <= 0 ){ message.channel.send("Es wurden keine Stimmen abgegeben :("); return; }
+
+                message.channel.send(optionString + middleString + winnerMessage);
+            }
+
+        
+            console.log("Starte Abstimmungs-Timer");
+            setTimeout(function(){endVote(message, voteResultList, voteOptions)}, (voteCountdown * 1000) );
+        }else{
+            console.log("Abstimmung ohne Zeitbegrenzung");
+        }
+    }).catch(console.error);
+    
 }

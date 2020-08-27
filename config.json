@@ -1,10 +1,12 @@
 {
+    "botID": "492231825071013908",
     "commandIdentifier": "$",
     "commandList":  [ "yeet**: Returns Yote!",
                       "r [subreddit name from url]**: Returns a new post from given subreddit.",
                       "avatar [@user]**: Replies with the avatar of the user executing the command",
                       "rp**: Returns a ✅ or ❌.",
                       "sidi [BEGRIFF]**: Returns Sag ich da immer sentence.",
+                      "vote [Abstimmungs-Beschreibung]|[Zeitlimit]|[Option1]|[Option2]|[Option3]|[Option4]|[Option5]|[Option6]|[Option7]|[Option8]|[Option9]|[Option10]**: \nStartet eine Abstimmung, Werte mit | trennen -> ALT GR + <. Maximal 10 Optionen. Zeitlimit ist optional, für Abstimmung ohne einen Zeitraum -1 angegeben. \nSonst für z.B 1 Sekunde -> 1s angeben oder für 1 Minute -> 1m angeben. Danach alle benötigten Optionen angeben.\nBeispiel: **$vote Ja oder Nein?|5m|Ja|Nein|Doch|Lost**",
                       "cat**: Returns an image of a cat.",
                       "dog**: Returns an image of a dog.",
                       "geekjoke**: Returns a joke.",
@@ -28,5 +30,6 @@
     "discord_avatar_url": "https://cdn.discordapp.com/avatars/",
     "modList": ["293049891184443392"],
     "twitterList": ["cursed_bot", "DankRedditMeme", "WholesomeMeme", "theMemesBot", "ItMeIRL2", "Duck_page", "NoContextHumans", "myunclesmemes", 
-                    "itanimeirl", "it_meirl", "AAAAAGGHHHH", "BestMemeBot", "DankMemesBot420", "StrangestMp4"]
+                    "itanimeirl", "it_meirl", "AAAAAGGHHHH", "BestMemeBot", "DankMemesBot420", "StrangestMp4"],
+    "voteEmoteList": ["0️⃣","1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣"]
 }
