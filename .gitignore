@@ -102,3 +102,6 @@ dist
 
 # TernJS port file
 .tern-port
+
+# Remove authentication keys/secrets from git repository
+auth.json
