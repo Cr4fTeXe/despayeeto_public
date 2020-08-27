@@ -15,6 +15,7 @@ var twitterClient = new Twitter({
     access_token_key: auth.twitter_access_token_key,
     access_token_secret: auth.twitter_access_token_secret
 });
+var rainbowRole;
 
 client.on('ready', () => {
     console.log('Bot wurde gestartet.');
@@ -89,6 +90,28 @@ client.on('message', message => {
             break;
         case 'vote':
             startVote(message, config);
+            break;
+        case 'rainbow':
+            if( config.modList.includes(message.author.id) ){
+                if(!message.guild) return;
+                if(!message.guild.member(client.user).hasPermission('MANAGE_ROLES')) return;
+                var colors = config.rainbowColors;
+                var role = message.guild.roles.fetch(config.rainbowRoleID);
+                if(!role) return;
+                let currentColor = 0;
+                rainbowRole = setInterval(() => {
+                    role.then(function(role){
+                        role.setColor(colors[currentColor]);
+                    });
+                    if(currentColor == (colors.length - 1)){ currentColor = 0; }
+                    else{ currentColor++; }
+                }, 5500);
+            }
+            break;
+        case 'stopRainbow':
+            if( config.modList.includes(message.author.id) ){
+                clearInterval(rainbowRole);
+            }
             break;
 
    }

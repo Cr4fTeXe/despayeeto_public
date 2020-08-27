@@ -31,5 +31,7 @@
     "modList": ["293049891184443392"],
     "twitterList": ["cursed_bot", "DankRedditMeme", "WholesomeMeme", "theMemesBot", "ItMeIRL2", "Duck_page", "NoContextHumans", "myunclesmemes", 
                     "itanimeirl", "it_meirl", "AAAAAGGHHHH", "BestMemeBot", "DankMemesBot420", "StrangestMp4"],
-    "voteEmoteList": ["0️⃣","1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣"]
+    "voteEmoteList": ["0️⃣","1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣"],
+    "rainbowRoleID": "748555679211716668",
+    "rainbowColors": ["#8012ed", "#8f0ae5", "#9f05da", "#ae02ce", "#bd01c1", "#ca01b3", "#d604a4", "#e10895", "#eb0f85", "#f21775", "#f82165", "#fc2d56", "#fe3947", "#fe4739", "#fc562d", "#f86521", "#f27517", "#eb850f", "#e19508", "#d6a404", "#cab301", "#bdc101", "#aece02", "#9fda05", "#8fe50a", "#7fed12", "#70f51a", "#60fa25", "#51fd31", "#42fe3e", "#35fe4c", "#29fb5b", "#1ef76a", "#14f07a", "#0de88a", "#07de9a", "#03d2a9", "#01c6b8", "#01b8c6", "#03a9d2", "#079ade", "#0d8ae8", "#147af0", "#1e6af7", "#295bfb", "#354cfe", "#423efe", "#5131fd", "#6025fa", "#701af5"]
 }
