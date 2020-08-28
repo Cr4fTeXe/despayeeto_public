@@ -1,14 +1,17 @@
 const auth = require('./auth.json');
 const config = require('./config.json');
-const Discord = require('discord.js');
-const curl = require('curl');
-var Twitter = require('twitter');
 const { JSDOM } = require( "jsdom" );
 const { window } = new JSDOM( "" );
 const $ = require( "jquery" )( window );
+const Discord = require('discord.js');
+const curl = require('curl');
+var Twitter = require('twitter');
+var {google} = require('googleapis');
 const client = new Discord.Client();
 var intervalList = [];
 var usedRedditLinks = [];
+var autoIntervalList = [];
+var autoSubredditList = [];
 var twitterClient = new Twitter({
     consumer_key: auth.twitter_consumer_key,
     consumer_secret: auth.twitter_consumer_secret,
@@ -22,7 +25,6 @@ client.on('ready', () => {
 });
 
 client.on('message', message => {
-
     if (message.content.substring(0, 1) == config.commandIdentifier) {
         var args = message.content.substring(1).split(' ');
         var cmd = args[0];
@@ -36,7 +38,7 @@ client.on('message', message => {
 	        sendHelpList(message, config);
             break;
         case 'r':
-            if(args[0] == ""){ message.reply("Bitte gib ein Subreddit an."); }
+            if(args[0] == "" || args[0] == undefined){ message.reply("Bitte gib ein Subreddit an."); }
             sendRedditPost(message, args[0], usedRedditLinks);
             break;
         case 'getRedditList':
@@ -78,42 +80,61 @@ client.on('message', message => {
             break;
         case 'wt':
             if( config.modList.includes(message.author.id) ){ watch_twitter(message, args[0]); }
+            else{ message.channel.send("Du hast keine Berechtigung diesen Befehl zu verwenden. Entweder ist er noch nicht fertig oder braucht extra Knowledge zum benutzen."); }
             break;
         case 'tweet':
             sendSoloTweet(message, args, twitterClient);
             break;
         case 'wm':
             if( config.modList.includes(message.author.id) ){ watchTwitterList(message, config); }
+            else{ message.channel.send("Du hast keine Berechtigung diesen Befehl zu verwenden. Entweder ist er noch nicht fertig oder braucht extra Knowledge zum benutzen."); }
             break;
         case 'swm':
             if( config.modList.includes(message.author.id) ){ stopMemesWatcher(message, intervalList) }
+            else{ message.channel.send("Du hast keine Berechtigung diesen Befehl zu verwenden. Entweder ist er noch nicht fertig oder braucht extra Knowledge zum benutzen."); }
             break;
         case 'vote':
             startVote(message, config);
             break;
         case 'rainbow':
-            if( config.modList.includes(message.author.id) ){
-                if(!message.guild) return;
-                if(!message.guild.member(client.user).hasPermission('MANAGE_ROLES')) return;
-                var colors = config.rainbowColors;
-                var role = message.guild.roles.fetch(config.rainbowRoleID);
-                if(!role) return;
-                let currentColor = 0;
-                rainbowRole = setInterval(() => {
-                    role.then(function(role){
-                        role.setColor(colors[currentColor]);
-                    });
-                    if(currentColor == (colors.length - 1)){ currentColor = 0; }
-                    else{ currentColor++; }
-                }, 5500);
-            }
+            if( config.modList.includes(message.author.id) ){ startRainbow(message, config); }
+            else{ message.channel.send("Du hast keine Berechtigung diesen Befehl zu verwenden. Entweder ist er noch nicht fertig oder braucht extra Knowledge zum benutzen."); }
             break;
         case 'stopRainbow':
-            if( config.modList.includes(message.author.id) ){
-                clearInterval(rainbowRole);
-            }
+            if( config.modList.includes(message.author.id) ){ clearInterval(rainbowRole); }
+            else{ message.channel.send("Du hast keine Berechtigung diesen Befehl zu verwenden. Entweder ist er noch nicht fertig oder braucht extra Knowledge zum benutzen."); }
             break;
-
+        case 'rules':
+            sendRules(message, config);
+            break;
+        case 'rule':
+            sendRule(message, config, args[0]);
+            break;
+        case 'stupipedia':
+            message.channel.send("https://www.stupidedia.org/stupi/Spezial:Zuf%C3%A4llige_Seite");
+            break;
+        case 'wikihow':
+            sendWikihowSearch(message, config, args);
+            break;
+        case 'urbandictionary':
+            sendUrbanDictionarySearch(message, config, args);
+            break;
+        case 'rstart':
+            if( config.modList.includes(message.author.id) ){ autoRedditPost(message, args, usedRedditLinks); }
+            else{ message.channel.send("Du hast keine Berechtigung diesen Befehl zu verwenden. Entweder ist er noch nicht fertig oder braucht extra Knowledge zum benutzen."); }
+            break;
+        case 'rstop':
+            if( config.modList.includes(message.author.id) ){ stopAutoRedditPost(message); }
+            else{ message.channel.send("Du hast keine Berechtigung diesen Befehl zu verwenden. Entweder ist er noch nicht fertig oder braucht extra Knowledge zum benutzen."); }
+            break;
+        case 'yt5':
+            if(args[0] == "" || args[0] == undefined){ message.reply("Bitte gib einen Suchwert an."); }
+            getYoutubeTop5(message, args.join(" "));
+            break;
+        case 'yt':
+            if(args[0] == "" || args[0] == undefined){ message.reply("Bitte gib einen Suchwert an."); }
+            getRandomYoutubeVideoByKeyword(message, args.join(" "));
+            break;
    }
 });
 
@@ -370,7 +391,7 @@ function sendRpChoice(message){
     let options = ["✅","❌"];
     let result = options[Math.floor(Math.random() * options.length)];
     console.log("Sending: { " + result + " }");
-    message.reply(result);
+    message.react(result);
 }
 
 function sendSoloTweet(message, args, twitterClient){
@@ -588,4 +609,143 @@ function startVote(message, config){
         }
     }).catch(console.error);
     
+}
+
+function startRainbow(message, config){
+    if(!message.guild) return;
+    if(!message.guild.member(client.user).hasPermission('MANAGE_ROLES')) return;
+    var colors = config.rainbowColors;
+    var role = message.guild.roles.fetch(config.rainbowRoleID);
+    if(!role) return;
+    let currentColor = 0;
+    rainbowRole = setInterval(() => {
+        role.then(function(role){
+            console.log("Changing Rainbow Role Color to: " + colors[currentColor]);
+            role.setColor(colors[currentColor]);
+        });
+        if(currentColor == (colors.length - 1)){ currentColor = 0; }
+        else{ currentColor++; }
+    }, config.rainbowCooldown);
+}
+
+function sendRules(message, config){
+    let rules = config.rulesOfInternet;
+    let rulesMessage = "**Rules of the Internet:**\n";
+    rules.forEach(function(value, index){
+        if((8 + rulesMessage.length + index.toString().length + value.length) > 2000){
+            message.channel.send(rulesMessage);
+            rulesMessage = "**" + (1 + index) + "**: " + value + "\n";
+        }else{
+            rulesMessage += "**" + (1 + index) + "**: " + value + "\n";
+        }
+    });
+    console.log("Sending { Rules of the Internet ... }");
+    message.channel.send(rulesMessage);
+}
+
+function sendRule(message, config, ruleNumber){
+    let rules = config.rulesOfInternet;
+    if(ruleNumber > 100){ message.channel.send("Die Regelnummer ist zu hoch. Maximum ist 100"); console.log("Sending { Die Regelnummer ist zu hoch. Maximum ist 100 }"); return; }
+    let ruleMessage = "**Rule " + ruleNumber + "**: " + rules[ruleNumber];
+    console.log("Sending { " + ruleMessage + " }");
+    message.channel.send(ruleMessage);
+}
+
+function sendWikihowSearch(message, config, attr){
+    let w_url = config.wikihow_search_url;
+    w_url += attr[0];
+    let argscounter = 0;
+    while (argscounter < attr.length) {
+        if (argscounter != 0) {
+            w_url += "+" + attr[argscounter];
+        }
+        argscounter++;
+    }
+
+    console.log("Sending: { " + w_url + " }");
+    message.channel.send( w_url );
+}
+
+function sendUrbanDictionarySearch(message, config, attr){
+    let u_url = config.urbanDictionary_search_url;
+    u_url += attr[0];
+    let argscounter = 0;
+    while (argscounter < attr.length) {
+        if (argscounter != 0) {
+            u_url += "+" + attr[argscounter];
+        }
+        argscounter++;
+    }
+
+    console.log("Sending: { " + u_url + " }");
+    message.channel.send( u_url );
+}
+
+function autoRedditPost(message, args, usedRedditLinks){
+    if(args[0] == "" || args[0] == undefined){ message.channel.send("Bitte gib ein Subreddit an."); console.log("Sending { Bitte gib ein Subreddit an. }"); return; }
+    if(autoSubredditList.includes(args[0])){ message.channel.send("Für dieses Subreddit wurde schon ein Auto-Poster aktiviert."); console.log("Sending { Für dieses Subreddit wurde schon ein Auto-Poster aktiviert. }"); return; }
+    console.log("Sending { Starte automatischen Reddit Poster für das Subreddit: " + args[0] + " }");
+    message.channel.send( "Starte automatischen Reddit Poster für das Subreddit: **" + args[0] + "**" );
+    autoSubredditList.push(args[0]);
+    autoIntervalList.push(setInterval(function(){
+        message.channel.send("Reddit-Post vom Subreddit **" + args[0] + "**:");
+        sendRedditPost(message, args[0], usedRedditLinks);
+    }, 60000));
+}
+
+function stopAutoRedditPost(message){
+    autoIntervalList.map(clearInterval);
+    autoSubredditList = [];
+    console.log("Sending { Stoppe alle automatischen Reddit Posts }");
+    message.channel.send("Stoppe alle automatischen Reddit Posts");
+}
+
+function getYoutubeTop5(message, searchWord){
+    google.youtube('v3').search.list({
+        key:                auth.youtube_api_key,
+        part:               'snippet',
+        q:                  searchWord,
+        maxResults:         5,
+        regionCode:         "DE",
+        relevanceLanguage:  "de",
+        type:               ["video"]
+    }).then((response) => {
+        let msgText = "**Die Top 5 Video Ergebnisse für '" + searchWord + "' sind:**\n";
+        for(el in response.data.items){
+            let thisElementVideoID = response.data.items[el].id.videoId;
+            let thisElementVideoTitle = response.data.items[el].snippet.title;
+            msgText += thisElementVideoTitle.replace("|", "\|") + ": \n<https://www.youtube.com/watch?v=" + thisElementVideoID + ">\n\n";
+        }
+
+        console.log("Sending { Youtube-Results for " + searchWord + " }");
+        message.channel.send(msgText);
+    }).catch((err) => {
+        console.log(err);
+        message.channel.send("Bei der Verbindung zu Youtube ist ein Fehler aufgetreten!");
+    });
+}
+
+function getRandomYoutubeVideoByKeyword(message, searchWord){
+    google.youtube('v3').search.list({
+        key:                auth.youtube_api_key,
+        part:               'snippet',
+        q:                  searchWord,
+        maxResults:         1,
+        regionCode:         "DE",
+        relevanceLanguage:  "de",
+        type:               ["video"]
+    }).then((response) => {
+        let msgText = "**Dieses Video wurde für '" + searchWord + "' gefunden:**\n";
+        for(el in response.data.items){
+            let thisElementVideoID = response.data.items[el].id.videoId;
+            let thisElementVideoTitle = response.data.items[el].snippet.title;
+            msgText += thisElementVideoTitle.replace("|", "\|") + ": \n<https://www.youtube.com/watch?v=" + thisElementVideoID + ">";
+        }
+
+        console.log("Sending { Youtube-Result for " + searchWord + " }");
+        message.channel.send(msgText);
+    }).catch((err) => {
+        console.log(err)
+        message.channel.send("Bei der Verbindung zu Youtube ist ein Fehler aufgetreten!");
+    });
 }
