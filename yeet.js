@@ -7,7 +7,6 @@ const Discord = require('discord.js');
 const curl = require('curl');
 var Twitter = require('twitter');
 var {google} = require('googleapis');
-const { SSL_OP_EPHEMERAL_RSA } = require('constants');
 const sqlite3 = require('sqlite3').verbose();
 const client = new Discord.Client();
 
