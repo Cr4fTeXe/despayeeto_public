@@ -614,7 +614,7 @@ function startVote(message, config){
 function startRainbow(message, config){
     if(!message.guild) return;
     if(!message.guild.member(client.user).hasPermission('MANAGE_ROLES')) return;
-    var colors = config.rainbowColors;
+    var colors = config.shortRainbowColors;
     var role = message.guild.roles.fetch(config.rainbowRoleID);
     if(!role) return;
     let currentColor = 0;

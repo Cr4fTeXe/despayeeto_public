@@ -48,6 +48,8 @@
                       "#f27517", "#eb850f", "#e19508", "#d6a404", "#cab301", "#bdc101", "#aece02", "#9fda05", "#8fe50a", "#7fed12", "#70f51a", "#60fa25", "#51fd31", "#42fe3e", "#35fe4c", "#29fb5b", 
                       "#1ef76a", "#14f07a", "#0de88a", "#07de9a", "#03d2a9", "#01c6b8", "#01b8c6", "#03a9d2", "#079ade", "#0d8ae8", "#147af0", "#1e6af7", "#295bfb", "#354cfe", "#423efe", "#5131fd", 
                       "#6025fa", "#701af5"],
+    "shortRainbowColors": ["#8012ed", "#a005d9", "#bf01bf", "#d905a0", "#ed1280", "#fa265f", "#ff4040", "#fa5f26", "#ed7f12", "#d9a005", "#bfbf01", "#a0d905", "#80ed12", "#5ffa26", "#40ff40", "#26fa5f", 
+                           "#12ed7f", "#05d9a0", "#01bfbf", "#05a0d9", "#1280ed", "#265ffa", "#4040ff", "#5f26fa"],
     "rainbowCooldown": 6000,
     "rulesOfInternet": ["Do not talk about /b/", "Do NOT talk about /b/", "We are Anonymous.", "Anonymous is legion.", "Anonymous does not forgive, Anonymous does not forget.", 
                         "Anonymous can be horrible, senseless, uncaring monster.", "Anonymous is still able to deliver.", "There are no real rules about posting.", 
