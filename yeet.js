@@ -7,7 +7,9 @@ const Discord = require('discord.js');
 const curl = require('curl');
 var Twitter = require('twitter');
 var {google} = require('googleapis');
+const sqlite3 = require('sqlite3').verbose();
 const client = new Discord.Client();
+
 var intervalList = [];
 var usedRedditLinks = [];
 var autoIntervalList = [];
@@ -20,122 +22,149 @@ var twitterClient = new Twitter({
 });
 var rainbowRole;
 
+
 client.on('ready', () => {
     console.log('Bot wurde gestartet.');
 });
 
 client.on('message', message => {
-    if (message.content.substring(0, 1) == config.commandIdentifier) {
-        var args = message.content.substring(1).split(' ');
-        var cmd = args[0];
-        args = args.splice(1);
 
-        console.log("Befehl { " + message.content + " } wurde empfangen.");
+    if(message.author.id != config.botID){
+
+        var serverID = message.guild.id;
+        var serverName = message.guild.name;
+
+        console.log('#### Message in server "' + serverName + '" (' + serverID + ') ####');
+
+        var createServerDBifNotExists = ["CREATE TABLE IF NOT EXISTS `ytSearchHistory` (        `id`	INTEGER PRIMARY KEY AUTOINCREMENT,        `searchTerm`	TEXT    );","    CREATE TABLE IF NOT EXISTS `usedTwitterLinks` (        `id`	INTEGER PRIMARY KEY AUTOINCREMENT,        `url`	TEXT,        `twitterTag`	TEXT    );", "    CREATE TABLE IF NOT EXISTS `usedRedditSubs` (        `id`	INTEGER PRIMARY KEY AUTOINCREMENT,        `sub`	TEXT    );    CREATE TABLE IF NOT EXISTS `usedRedditLinks` (        `id`	INTEGER PRIMARY KEY AUTOINCREMENT,        `url`	TEXT,        `sub`	TEXT    );", "    CREATE TABLE IF NOT EXISTS `rulesOfInternet` (        `id`	INTEGER,        `ruleDescription`	TEXT,        PRIMARY KEY(`id`)    );", "    CREATE TABLE IF NOT EXISTS `memeAccounts` (        `id`	INTEGER PRIMARY KEY AUTOINCREMENT,        `twitterTag`	INTEGER    );", "    CREATE TABLE IF NOT EXISTS `helpList` (        `id`	INTEGER PRIMARY KEY AUTOINCREMENT,        `command`	TEXT,        `commandDescription`	TEXT    );", "    CREATE TABLE IF NOT EXISTS `commandHistory` (        `id`	INTEGER PRIMARY KEY AUTOINCREMENT,        `command`	TEXT,        `commandArguments`	TEXT    );", "    CREATE TABLE IF NOT EXISTS `botUsers` (        `id`	INTEGER PRIMARY KEY AUTOINCREMENT,        `userID`	INTEGER,        `userTag`	TEXT,        `userNickname`	TEXT    );", "    CREATE TABLE IF NOT EXISTS `autoRedditList` (        `id`	INTEGER PRIMARY KEY AUTOINCREMENT,        `sub`	TEXT    );"];
+
+        let db = new sqlite3.Database('./bigbrain_' + serverID + '.db', (err) => {
+            if(err){ return console.error(err.message); }
+        });
+
+        createServerDBifNotExists.forEach(function(element){
+            db.all(element, [], (err, rows) => {
+                if(err){ throw err; }
+            });
+        });
+
+
+        if (message.content.substring(0, 1) == config.commandIdentifier) {
+            var args = message.content.substring(1).split(' ');
+            var cmd = args[0];
+            args = args.splice(1);
+
+            console.log("Befehl { " + message.content + " } wurde empfangen.");
+        }
+
+        switch (cmd) {
+            case 'help':
+                sendHelpList(message, config);
+                break;
+            case 'r':
+                if(args[0] == "" || args[0] == undefined){ message.reply("Bitte gib ein Subreddit an."); }
+                sendRedditPost(message, args[0], usedRedditLinks);
+                break;
+            case 'getRedditList':
+                sendRedditList(message, usedRedditLinks);
+                break;
+            case 'yeet':
+                console.log("Sending: { Yote! }");
+                message.channel.send('Yote!');
+                break;
+            case 'sidi':
+                sendSidi(message, args[0], config);
+                break;
+            case 'cat':
+                sendCatPost(message, config);
+                break;
+            case 'dog':
+                sendDogPost(message, config);
+                break;
+            case 'numberfact':
+                sendNumberFact(message, config);
+                break;
+            case 'chucknorris':
+                sendChuckNorrisPost(message, config);
+                break;
+            case 'geekjoke':
+                sendGeekJokePost(message, config);
+                break;
+            case 'catfacts':
+                sendCatFact(message, config);
+                break;
+            case 'google':
+                sendGoogleSearch(message, config, args);
+                break;
+            case 'avatar':
+                sendUserAvatar(message, config);
+                break;
+            case "rp":
+                sendRpChoice(message);
+                break;
+            case 'wt':
+                if( config.modList.includes(message.author.id) ){ watch_twitter(message, args[0]); }
+                else{ message.channel.send("Du hast keine Berechtigung diesen Befehl zu verwenden. Entweder ist er noch nicht fertig oder braucht extra Knowledge zum benutzen."); }
+                break;
+            case 'tweet':
+                sendSoloTweet(message, args, twitterClient);
+                break;
+            case 'wm':
+                if( config.modList.includes(message.author.id) ){ watchTwitterList(message, config); }
+                else{ message.channel.send("Du hast keine Berechtigung diesen Befehl zu verwenden. Entweder ist er noch nicht fertig oder braucht extra Knowledge zum benutzen."); }
+                break;
+            case 'swm':
+                if( config.modList.includes(message.author.id) ){ stopMemesWatcher(message, intervalList) }
+                else{ message.channel.send("Du hast keine Berechtigung diesen Befehl zu verwenden. Entweder ist er noch nicht fertig oder braucht extra Knowledge zum benutzen."); }
+                break;
+            case 'vote':
+                startVote(message, config);
+                break;
+            case 'rainbow':
+                if( config.modList.includes(message.author.id) ){ startRainbow(message, config); }
+                else{ message.channel.send("Du hast keine Berechtigung diesen Befehl zu verwenden. Entweder ist er noch nicht fertig oder braucht extra Knowledge zum benutzen."); }
+                break;
+            case 'stopRainbow':
+                if( config.modList.includes(message.author.id) ){ clearInterval(rainbowRole); }
+                else{ message.channel.send("Du hast keine Berechtigung diesen Befehl zu verwenden. Entweder ist er noch nicht fertig oder braucht extra Knowledge zum benutzen."); }
+                break;
+            case 'rules':
+                sendRules(message, config);
+                break;
+            case 'rule':
+                sendRule(message, config, args[0]);
+                break;
+            case 'stupipedia':
+                message.channel.send("https://www.stupidedia.org/stupi/Spezial:Zuf%C3%A4llige_Seite");
+                break;
+            case 'wikihow':
+                sendWikihowSearch(message, config, args);
+                break;
+            case 'urbandictionary':
+                sendUrbanDictionarySearch(message, config, args);
+                break;
+            case 'rstart':
+                if( config.modList.includes(message.author.id) ){ autoRedditPost(message, args, usedRedditLinks); }
+                else{ message.channel.send("Du hast keine Berechtigung diesen Befehl zu verwenden. Entweder ist er noch nicht fertig oder braucht extra Knowledge zum benutzen."); }
+                break;
+            case 'rstop':
+                if( config.modList.includes(message.author.id) ){ stopAutoRedditPost(message); }
+                else{ message.channel.send("Du hast keine Berechtigung diesen Befehl zu verwenden. Entweder ist er noch nicht fertig oder braucht extra Knowledge zum benutzen."); }
+                break;
+            case 'yt5':
+                if(args[0] == "" || args[0] == undefined){ message.reply("Bitte gib einen Suchwert an."); }
+                getYoutubeTop5(message, args.join(" "));
+                break;
+            case 'yt':
+                if(args[0] == "" || args[0] == undefined){ message.reply("Bitte gib einen Suchwert an."); }
+                getRandomYoutubeVideoByKeyword(message, args.join(" "));
+                break;
     }
 
-    switch (cmd) {
-        case 'help':
-	        sendHelpList(message, config);
-            break;
-        case 'r':
-            if(args[0] == "" || args[0] == undefined){ message.reply("Bitte gib ein Subreddit an."); }
-            sendRedditPost(message, args[0], usedRedditLinks);
-            break;
-        case 'getRedditList':
-            sendRedditList(message, usedRedditLinks);
-            break;
-        case 'yeet':
-            console.log("Sending: { Yote! }");
-            message.channel.send('Yote!');
-            break;
-        case 'sidi':
-            sendSidi(message, args[0], config);
-            break;
-        case 'cat':
-            sendCatPost(message, config);
-            break;
-        case 'dog':
-            sendDogPost(message, config);
-            break;
-        case 'numberfact':
-            sendNumberFact(message, config);
-            break;
-        case 'chucknorris':
-            sendChuckNorrisPost(message, config);
-            break;
-        case 'geekjoke':
-            sendGeekJokePost(message, config);
-            break;
-        case 'catfacts':
-            sendCatFact(message, config);
-            break;
-        case 'google':
-            sendGoogleSearch(message, config, args);
-            break;
-        case 'avatar':
-            sendUserAvatar(message, config);
-            break;
-        case "rp":
-            sendRpChoice(message);
-            break;
-        case 'wt':
-            if( config.modList.includes(message.author.id) ){ watch_twitter(message, args[0]); }
-            else{ message.channel.send("Du hast keine Berechtigung diesen Befehl zu verwenden. Entweder ist er noch nicht fertig oder braucht extra Knowledge zum benutzen."); }
-            break;
-        case 'tweet':
-            sendSoloTweet(message, args, twitterClient);
-            break;
-        case 'wm':
-            if( config.modList.includes(message.author.id) ){ watchTwitterList(message, config); }
-            else{ message.channel.send("Du hast keine Berechtigung diesen Befehl zu verwenden. Entweder ist er noch nicht fertig oder braucht extra Knowledge zum benutzen."); }
-            break;
-        case 'swm':
-            if( config.modList.includes(message.author.id) ){ stopMemesWatcher(message, intervalList) }
-            else{ message.channel.send("Du hast keine Berechtigung diesen Befehl zu verwenden. Entweder ist er noch nicht fertig oder braucht extra Knowledge zum benutzen."); }
-            break;
-        case 'vote':
-            startVote(message, config);
-            break;
-        case 'rainbow':
-            if( config.modList.includes(message.author.id) ){ startRainbow(message, config); }
-            else{ message.channel.send("Du hast keine Berechtigung diesen Befehl zu verwenden. Entweder ist er noch nicht fertig oder braucht extra Knowledge zum benutzen."); }
-            break;
-        case 'stopRainbow':
-            if( config.modList.includes(message.author.id) ){ clearInterval(rainbowRole); }
-            else{ message.channel.send("Du hast keine Berechtigung diesen Befehl zu verwenden. Entweder ist er noch nicht fertig oder braucht extra Knowledge zum benutzen."); }
-            break;
-        case 'rules':
-            sendRules(message, config);
-            break;
-        case 'rule':
-            sendRule(message, config, args[0]);
-            break;
-        case 'stupipedia':
-            message.channel.send("https://www.stupidedia.org/stupi/Spezial:Zuf%C3%A4llige_Seite");
-            break;
-        case 'wikihow':
-            sendWikihowSearch(message, config, args);
-            break;
-        case 'urbandictionary':
-            sendUrbanDictionarySearch(message, config, args);
-            break;
-        case 'rstart':
-            if( config.modList.includes(message.author.id) ){ autoRedditPost(message, args, usedRedditLinks); }
-            else{ message.channel.send("Du hast keine Berechtigung diesen Befehl zu verwenden. Entweder ist er noch nicht fertig oder braucht extra Knowledge zum benutzen."); }
-            break;
-        case 'rstop':
-            if( config.modList.includes(message.author.id) ){ stopAutoRedditPost(message); }
-            else{ message.channel.send("Du hast keine Berechtigung diesen Befehl zu verwenden. Entweder ist er noch nicht fertig oder braucht extra Knowledge zum benutzen."); }
-            break;
-        case 'yt5':
-            if(args[0] == "" || args[0] == undefined){ message.reply("Bitte gib einen Suchwert an."); }
-            getYoutubeTop5(message, args.join(" "));
-            break;
-        case 'yt':
-            if(args[0] == "" || args[0] == undefined){ message.reply("Bitte gib einen Suchwert an."); }
-            getRandomYoutubeVideoByKeyword(message, args.join(" "));
-            break;
-   }
+    db.close((err) => {
+        if(err){ console.error(err.message); }
+    });
+    }
 });
 
 

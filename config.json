@@ -1,6 +1,6 @@
 {
     "botID": "492231825071013908",
-    "commandIdentifier": "$",
+    "commandIdentifier": "!",
     "commandList":  [ "yeet**: Returns Yote!",
                       "r [subreddit name from url]**: Returns a new post from given subreddit.",
                       "rstart [subreddit name from url]**: Start automatic reddit poster. 1 post per minute",
