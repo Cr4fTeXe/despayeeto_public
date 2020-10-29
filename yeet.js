@@ -9,6 +9,7 @@ var Twitter = require('twitter');
 var {google} = require('googleapis');
 const sqlite3 = require('sqlite3').verbose();
 const client = new Discord.Client();
+const covid19 = require('covid19-api');
 
 var intervalList = [];
 var usedRedditLinks = [];
@@ -36,7 +37,7 @@ client.on('message', message => {
 
         console.log('#### Message in server "' + serverName + '" (' + serverID + ') ####');
 
-        var createServerDBifNotExists = ["CREATE TABLE IF NOT EXISTS `ytSearchHistory` (        `id`	INTEGER PRIMARY KEY AUTOINCREMENT,        `searchTerm`	TEXT    );","    CREATE TABLE IF NOT EXISTS `usedTwitterLinks` (        `id`	INTEGER PRIMARY KEY AUTOINCREMENT,        `url`	TEXT,        `twitterTag`	TEXT    );", "    CREATE TABLE IF NOT EXISTS `usedRedditSubs` (        `id`	INTEGER PRIMARY KEY AUTOINCREMENT,        `sub`	TEXT    );    CREATE TABLE IF NOT EXISTS `usedRedditLinks` (        `id`	INTEGER PRIMARY KEY AUTOINCREMENT,        `url`	TEXT,        `sub`	TEXT    );", "    CREATE TABLE IF NOT EXISTS `commandHistory` (        `id`	INTEGER PRIMARY KEY AUTOINCREMENT,        `command`	TEXT,        `commandArguments`	TEXT    );", "    CREATE TABLE IF NOT EXISTS `botUsers` (        `id`	INTEGER PRIMARY KEY AUTOINCREMENT,        `userID`	INTEGER,        `userTag`	TEXT,        `userNickname`	TEXT    );", "    CREATE TABLE IF NOT EXISTS `autoRedditList` (        `id`	INTEGER PRIMARY KEY AUTOINCREMENT,        `sub`	TEXT    );"];
+        var createServerDBifNotExists = ["CREATE TABLE IF NOT EXISTS `ytSearchHistory`    (`id`	INTEGER PRIMARY KEY AUTOINCREMENT, `searchTerm`	TEXT ) ;","CREATE TABLE IF NOT EXISTS `usedTwitterLinks`   (`id`	INTEGER PRIMARY KEY AUTOINCREMENT, `url`	    TEXT,       `twitterTag`  TEXT );","CREATE TABLE IF NOT EXISTS `usedRedditSubs`     (`id`	INTEGER PRIMARY KEY AUTOINCREMENT, `sub`	    TEXT );","CREATE TABLE IF NOT EXISTS `usedRedditLinks`    (`id`	INTEGER PRIMARY KEY AUTOINCREMENT, `url`	    TEXT,       `sub` TEXT );","CREATE TABLE IF NOT EXISTS `commandHistory`     (`id`	INTEGER PRIMARY KEY AUTOINCREMENT, `command`	TEXT,       `commandArguments` TEXT);","CREATE TABLE IF NOT EXISTS `botUsers`           (`id`	INTEGER PRIMARY KEY AUTOINCREMENT, `userID`	    INTEGER,    `userTag`  TEXT,    `userNickname`    TEXT);","CREATE TABLE IF NOT EXISTS `autoRedditList`     (`id`	INTEGER PRIMARY KEY AUTOINCREMENT, `sub`	    TEXT);","CREATE TABLE IF NOT EXISTS `msgHistory`         (`id`	INTEGER PRIMARY KEY AUTOINCREMENT, `userID`	    INTEGER,    `userNickname`  TEXT,    `msgText`  TEXT,    `msgTimestamp`    TEXT,    `msgChannelId`  TEXT)"];
 
         let db = new sqlite3.Database('./bigbrain_' + serverID + '.db', (err) => {
             if(err){ return console.error(err.message); }
@@ -51,12 +52,13 @@ client.on('message', message => {
                     continueExec();
                 }else{
                     entryCounterServerDB++;
-                    
                 }
             });
         }); 
 
         function continueExec(){
+
+            logMessage(message, db);
 
             if (message.content.substring(0, 1) == config.commandIdentifier) {
                 var args = message.content.substring(1).split(' ');
@@ -183,6 +185,9 @@ client.on('message', message => {
                     if(args[0] == "" || args[0] == undefined){ message.reply("Bitte gib einen Suchwert an."); }
                     saveYTHistory(args.join(" "), db);
                     getRandomYoutubeVideoByKeyword(message, args.join(" "));
+                    break;
+                case 'corona':
+                    getCoronaData(message, covid19);
                     break;
             }      
         }
@@ -828,7 +833,7 @@ function saveUsedTwitterLinks(latestPost, twitterTag, db, serverID){
             if(err){ return console.error(err.message); }
         });
 
-        ["CREATE TABLE IF NOT EXISTS `ytSearchHistory` (        `id`	INTEGER PRIMARY KEY AUTOINCREMENT,        `searchTerm`	TEXT    );","    CREATE TABLE IF NOT EXISTS `usedTwitterLinks` (        `id`	INTEGER PRIMARY KEY AUTOINCREMENT,        `url`	TEXT,        `twitterTag`	TEXT    );", "    CREATE TABLE IF NOT EXISTS `usedRedditSubs` (        `id`	INTEGER PRIMARY KEY AUTOINCREMENT,        `sub`	TEXT    );    CREATE TABLE IF NOT EXISTS `usedRedditLinks` (        `id`	INTEGER PRIMARY KEY AUTOINCREMENT,        `url`	TEXT,        `sub`	TEXT    );", "    CREATE TABLE IF NOT EXISTS `commandHistory` (        `id`	INTEGER PRIMARY KEY AUTOINCREMENT,        `command`	TEXT,        `commandArguments`	TEXT    );", "    CREATE TABLE IF NOT EXISTS `botUsers` (        `id`	INTEGER PRIMARY KEY AUTOINCREMENT,        `userID`	INTEGER,        `userTag`	TEXT,        `userNickname`	TEXT    );", "    CREATE TABLE IF NOT EXISTS `autoRedditList` (        `id`	INTEGER PRIMARY KEY AUTOINCREMENT,        `sub`	TEXT    );"].forEach(function(element){
+        ["CREATE TABLE IF NOT EXISTS `ytSearchHistory`    (`id`	INTEGER PRIMARY KEY AUTOINCREMENT, `searchTerm`	TEXT ) ;","CREATE TABLE IF NOT EXISTS `usedTwitterLinks`   (`id`	INTEGER PRIMARY KEY AUTOINCREMENT, `url`	    TEXT,       `twitterTag`  TEXT );","CREATE TABLE IF NOT EXISTS `usedRedditSubs`     (`id`	INTEGER PRIMARY KEY AUTOINCREMENT, `sub`	    TEXT );","CREATE TABLE IF NOT EXISTS `usedRedditLinks`    (`id`	INTEGER PRIMARY KEY AUTOINCREMENT, `url`	    TEXT,       `sub` TEXT );","CREATE TABLE IF NOT EXISTS `commandHistory`     (`id`	INTEGER PRIMARY KEY AUTOINCREMENT, `command`	TEXT,       `commandArguments` TEXT);","CREATE TABLE IF NOT EXISTS `botUsers`           (`id`	INTEGER PRIMARY KEY AUTOINCREMENT, `userID`	    INTEGER,    `userTag`  TEXT,    `userNickname`    TEXT);","CREATE TABLE IF NOT EXISTS `autoRedditList`     (`id`	INTEGER PRIMARY KEY AUTOINCREMENT, `sub`	    TEXT);","CREATE TABLE IF NOT EXISTS `msgHistory`         (`id`	INTEGER PRIMARY KEY AUTOINCREMENT, `userID`	    INTEGER,    `userNickname`  TEXT,    `msgText`  TEXT,    `msgTimestamp`    TEXT,    `msgChannelId`  TEXT)"].forEach(function(element){
             db.all(element, [], (err, rows) => {
                 if(err){ throw err; }
             });
@@ -856,4 +861,47 @@ function saveYTHistory(searchTerm, db){
     }else{
         console.log("Empty searchTerm for YT function");
     }
+}
+
+function getCoronaData(message, corona){
+    corona.getReports().then(function(data){
+        data = data[0][0];
+        let dataTable = data.table;
+        let germanData;
+        let coronaMessage = "";
+
+        for(entry of dataTable){
+            let germanyCounter = 0;
+            for(country of entry){
+                if(country.Country === "Germany" && germanyCounter <= 0){
+                    germanData = country;
+                    germanyCounter++;
+                }
+            }
+        }
+
+        coronaMessage += "**Globale Daten:** \n";
+        coronaMessage += "‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n";
+        coronaMessage += "Fälle: \t \t**" + data.cases + "**\n";
+        coronaMessage += "Tode: \t\t**" + data.deaths + "**\n";
+        coronaMessage += "Geheilt: \t**" + data.recovered + "**\n\n";
+        coronaMessage += "**Daten von Deutschland:** " + "\n";
+        coronaMessage += "‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n";
+        coronaMessage += "Fälle gesamt: \t \t **" + germanData.TotalCases + "**\n";
+        coronaMessage += "Tode: \t \t \t \t \t**" + germanData.TotalDeaths + "**\n";
+        coronaMessage += "Geheilt: \t\t\t\t \t**" + germanData.TotalRecovered + "**\n";
+        coronaMessage += "Neue Fälle: \t \t \t**" + germanData.NewCases + "**\n";
+        coronaMessage += "Neue Tode: \t\t \t**" + germanData.NewDeaths + "**\n";
+        coronaMessage += "Neue Heilungen: \t**" + germanData.NewRecovered + "**\n";
+
+        message.channel.send(coronaMessage);
+    });
+}
+
+function logMessage(message, db){
+    var msgHistoryInsertSQL = "INSERT INTO msgHistory (userID, userNickname, msgText, msgTimestamp, msgChannelId) VALUES ('" + message.author.id + "','" + message.author.username + "','" + message.content + "','" + message.createdTimestamp + "','" + message.channel.id + "');";
+
+    db.all(msgHistoryInsertSQL, [], (err, rows) => {
+        if(err){ throw err; }
+    });
 }
