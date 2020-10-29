@@ -1,6 +1,6 @@
 {
     "botID": "492231825071013908",
-    "commandIdentifier": "!",
+    "commandIdentifier": "$",
     "commandList":  [ "yeet**: Returns Yote!",
                       "r [subreddit name from url]**: Returns a new post from given subreddit.",
                       "rstart [subreddit name from url]**: Start automatic reddit poster. 1 post per minute",
@@ -26,7 +26,8 @@
                       "tweet [twitter tag of user]**: Returns a random tweet of given account.",
                       "wt [twitter tag of user]**: Gets a twitter users newest tweet every minute",
                       "wm**: start memes watcher",
-                      "swm**: stops memes watcher"
+                      "swm**: stops memes watcher",
+                      "corona**: Zeigt die heutigen Corona Daten an. (Dauert ein bisschen bis die Daten verarbeitet wurden)"
                     ],
     "exceptionArray": ["a", "e", "i", "o", "u", "y", "A", "E", "I", "O", "U", "ä", "ö", "ü", "Ä", "Ö", "Ü", "Y"],
     "cat_api_url": "https://api.thecatapi.com/v1/images/search?size=full&mime_type=jpg,png,gife5166907-bf66-46b9-bf6d-946504ce5323",
