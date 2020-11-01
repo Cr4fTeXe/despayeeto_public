@@ -889,17 +889,18 @@ function getCoronaData(message, corona){
         coronaMessage += "‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n";
         coronaMessage += "Fälle gesamt: \t \t **" + germanData.TotalCases + "**\n";
         coronaMessage += "Tode: \t \t \t \t \t**" + germanData.TotalDeaths + "**\n";
-        coronaMessage += "Geheilt: \t\t\t\t \t**" + germanData.TotalRecovered + "**\n";
+        coronaMessage += "Geheilt: \t\t\t\t\t**" + germanData.TotalRecovered + "**\n";
         coronaMessage += "Neue Fälle: \t \t \t**" + germanData.NewCases + "**\n";
         coronaMessage += "Neue Tode: \t\t \t**" + germanData.NewDeaths + "**\n";
         coronaMessage += "Neue Heilungen: \t**" + germanData.NewRecovered + "**\n";
 
+        console.log("Sending { Corona Data of today }");
         message.channel.send(coronaMessage);
     });
 }
 
 function logMessage(message, db){
-    var msgHistoryInsertSQL = "INSERT INTO msgHistory (userID, userNickname, msgText, msgTimestamp, msgChannelId) VALUES ('" + message.author.id + "','" + message.author.username + "','" + message.content + "','" + message.createdTimestamp + "','" + message.channel.id + "');";
+    var msgHistoryInsertSQL = "INSERT INTO msgHistory (userID, userNickname, msgText, msgTimestamp, msgChannelId) VALUES ('" + message.author.id + "','" + message.author.username.replace("'", "") + "','" + message.content.replace("'", "") + "','" + message.createdTimestamp + "','" + message.channel.id + "');";
 
     db.all(msgHistoryInsertSQL, [], (err, rows) => {
         if(err){ throw err; }
