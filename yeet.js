@@ -34,8 +34,10 @@ client.on('message', message => {
 
         var serverID = message.guild.id;
         var serverName = message.guild.name;
+        var today = new Date();
+        var datetime = today.getDate().toString().padStart(2, "0") + '.' + (today.getMonth()+1).toString().padStart(2, "0") + '.' + today.getFullYear() + ' ' + today.getHours().toString().padStart(2, "0") + ":" + today.getMinutes().toString().padStart(2, "0") + ":" + today.getSeconds().toString().padStart(2, "0");
 
-        console.log('#### Message in server "' + serverName + '" (' + serverID + ') ####');
+        console.log('#### Message in server "' + serverName + '" (' + serverID + ') | ' + datetime + ' ####');
 
         var createServerDBifNotExists = ["CREATE TABLE IF NOT EXISTS `ytSearchHistory`    (`id`	INTEGER PRIMARY KEY AUTOINCREMENT, `searchTerm`	TEXT ) ;","CREATE TABLE IF NOT EXISTS `usedTwitterLinks`   (`id`	INTEGER PRIMARY KEY AUTOINCREMENT, `url`	    TEXT,       `twitterTag`  TEXT );","CREATE TABLE IF NOT EXISTS `usedRedditSubs`     (`id`	INTEGER PRIMARY KEY AUTOINCREMENT, `sub`	    TEXT );","CREATE TABLE IF NOT EXISTS `usedRedditLinks`    (`id`	INTEGER PRIMARY KEY AUTOINCREMENT, `url`	    TEXT,       `sub` TEXT );","CREATE TABLE IF NOT EXISTS `commandHistory`     (`id`	INTEGER PRIMARY KEY AUTOINCREMENT, `command`	TEXT,       `commandArguments` TEXT);","CREATE TABLE IF NOT EXISTS `botUsers`           (`id`	INTEGER PRIMARY KEY AUTOINCREMENT, `userID`	    INTEGER,    `userTag`  TEXT,    `userNickname`    TEXT);","CREATE TABLE IF NOT EXISTS `autoRedditList`     (`id`	INTEGER PRIMARY KEY AUTOINCREMENT, `sub`	    TEXT);","CREATE TABLE IF NOT EXISTS `msgHistory`         (`id`	INTEGER PRIMARY KEY AUTOINCREMENT, `userID`	    INTEGER,    `userNickname`  TEXT,    `msgText`  TEXT,    `msgTimestamp`    TEXT,    `msgChannelId`  TEXT)"];
 
@@ -65,13 +67,13 @@ client.on('message', message => {
                 var cmd = args[0];
                 args = args.splice(1);
     
-                var cmdHistoryInsertSQL = "INSERT INTO commandHistory (command, commandArguments) VALUES ('" + cmd + "', '" + ''.concat(args) + "');";
+                var cmdHistoryInsertSQL = "INSERT INTO commandHistory (command, commandArguments) VALUES ('" + cmd.replace("'", "").replace('"', '') + "', '" + ''.concat(args).replace("'", "").replace('"', '') + "');";
                 db.all(cmdHistoryInsertSQL, [], (err, rows) => {
                     if(err){ throw err; }
                     console.log("Inserted in commandHistory " + cmd + ": " + ''.concat(args));
                 });
 
-                var cmdUserInsertSQL = "INSERT INTO botUsers (userID, userTag, userNickname) VALUES ('" + message.author.id + "', '" + message.author.tag + "', '" + message.author.username + "');";
+                var cmdUserInsertSQL = "INSERT INTO botUsers (userID, userTag, userNickname) VALUES ('" + message.author.id + "', '" + message.author.tag.replace("'", "").replace('"', '') + "', '" + message.author.username.replace("'", "").replace('"', '') + "');";
 
                 db.all(cmdUserInsertSQL, [], (err, rows) => {
                     if(err){ throw err; }
@@ -801,7 +803,7 @@ function getRandomYoutubeVideoByKeyword(message, searchWord){
         for(el in response.data.items){
             let thisElementVideoID = response.data.items[el].id.videoId;
             let thisElementVideoTitle = response.data.items[el].snippet.title;
-            msgText += thisElementVideoTitle.replace("|", "\|") + ": \n<https://www.youtube.com/watch?v=" + thisElementVideoID + ">";
+            msgText += thisElementVideoTitle.replace("|", "\|") + ": \nhttps://www.youtube.com/watch?v=" + thisElementVideoID + "";
         }
 
         console.log("Sending { Youtube-Result for " + searchWord + " }");
@@ -814,7 +816,7 @@ function getRandomYoutubeVideoByKeyword(message, searchWord){
 
 function saveUsedSub(sub, db){
     if(sub != ""){
-        var subInsertSQL = "INSERT INTO usedRedditSubs (sub) VALUES ('" + sub + "');";
+        var subInsertSQL = "INSERT INTO usedRedditSubs (sub) VALUES ('" + sub.replace("'", "").replace('"', '') + "');";
 
         db.all(subInsertSQL, [], (err, rows) => {
             if(err){ throw err; }
@@ -827,7 +829,7 @@ function saveUsedSub(sub, db){
 
 function saveUsedTwitterLinks(latestPost, twitterTag, db, serverID){
     if(latestPost != "" && twitterTag != ""){
-        var subInsertSQL = "INSERT INTO usedTwitterLinks (url, twitterTag) VALUES ('" + latestPost + "', '" + twitterTag + "');";
+        var subInsertSQL = "INSERT INTO usedTwitterLinks (url, twitterTag) VALUES ('" + latestPost.replace("'", "").replace('"', '') + "', '" + twitterTag.replace("'", "").replace('"', '') + "');";
 
         let db = new sqlite3.Database('./bigbrain_' + serverID + '.db', (err) => {
             if(err){ return console.error(err.message); }
@@ -852,7 +854,7 @@ function saveUsedTwitterLinks(latestPost, twitterTag, db, serverID){
 
 function saveYTHistory(searchTerm, db){
     if(searchTerm != ""){
-        var searchTermInsertSQL = "INSERT INTO ytSearchHistory (searchTerm) VALUES ('" + searchTerm + "');";
+        var searchTermInsertSQL = "INSERT INTO ytSearchHistory (searchTerm) VALUES ('" + searchTerm.replace("'", "").replace('"', '') + "');";
 
         db.all(searchTermInsertSQL, [], (err, rows) => {
             if(err){ throw err; }
@@ -900,7 +902,7 @@ function getCoronaData(message, corona){
 }
 
 function logMessage(message, db){
-    var msgHistoryInsertSQL = "INSERT INTO msgHistory (userID, userNickname, msgText, msgTimestamp, msgChannelId) VALUES ('" + message.author.id + "','" + message.author.username.replace("'", "") + "','" + message.content.replace("'", "") + "','" + message.createdTimestamp + "','" + message.channel.id + "');";
+    var msgHistoryInsertSQL = "INSERT INTO msgHistory (userID, userNickname, msgText, msgTimestamp, msgChannelId) VALUES ('" + message.author.id + "','" + message.author.username.replace("'", "").replace('"', '') + "','" + message.content.replace("'", "").replace('"', '') + "','" + message.createdTimestamp + "','" + message.channel.id + "');";
 
     db.all(msgHistoryInsertSQL, [], (err, rows) => {
         if(err){ throw err; }
